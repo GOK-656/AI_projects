@@ -21,7 +21,7 @@ import util
 from util import Stack
 from util import Queue
 from util import PriorityQueue
-from game import Directions
+import sys
 
 class SearchProblem:
     """
@@ -99,30 +99,30 @@ def depthFirstSearch(problem):
 
     frontier = Stack()
     initialState = problem.getStartState()
-    frontier.push((None, None, initialState))
-    actions = []
-    explored = dict()
-    while not frontier.isEmpty():
-        prevState, direction, currState = frontier.pop()
+    frontier.push(([], initialState))
 
-        explored[currState] = (prevState, direction)
+    explored = []
+    while not frontier.isEmpty():
+        actions, currState = frontier.pop()
 
         if problem.isGoalState(currState):
-            temp = currState
+            # temp = currState
             # print(explored)
             # print(temp)
-            while temp in explored.keys():
-                actions.append(explored[temp][1])
-                # print(explored[temp])
-                temp = explored[temp][0]
+            # while temp in explored.keys():
+            #     actions.append(explored[temp][1])
+            #     # print(explored[temp])
+            #     temp = explored[temp][0]
             # print(temp)
             # print(actions[:-1][::-1])
-            return actions[-2::-1]
+            return actions
 
-        successors = problem.getSuccessors(currState)
-        for dir, cost, nextState in successors:
-            if nextState not in explored.keys():
-                frontier.push((currState, dir, nextState))
+        if currState not in explored:
+            explored.append(currState)
+            successors = problem.getSuccessors(currState)
+            for dir, cost, nextState in successors:
+                if nextState not in explored:
+                    frontier.push((actions+[dir], nextState))
 
     return []
 
@@ -131,30 +131,29 @@ def breadthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     frontier = Queue()
     initialState = problem.getStartState()
-    frontier.push((None, None, initialState))
-    actions = []
-    explored = dict()
-    while not frontier.isEmpty():
-        prevState, direction, currState = frontier.pop()
+    frontier.push(([], initialState))
 
-        explored[currState] = (prevState, direction)
+    explored = []
+    while not frontier.isEmpty():
+        actions, currState = frontier.pop()
 
         if problem.isGoalState(currState):
-            temp = currState
+            # temp = currState
             # print(explored)
             # print(temp)
-            while temp in explored.keys():
-                actions.append(explored[temp][1])
-                # print(explored[temp])
-                temp = explored[temp][0]
+            # while temp in explored.keys():
+            #     actions.append(explored[temp][1])
+            #     # print(explored[temp])
+            #     temp = explored[temp][0]
             # print(temp)
             # print(actions[:-1][::-1])
-            return actions[-2::-1]
-
-        successors = problem.getSuccessors(currState)
-        for dir, cost, nextState in successors:
-            if nextState not in explored.keys():
-                frontier.push((currState, dir, nextState))
+            return actions
+        if currState not in explored:
+            explored.append(currState)
+            successors = problem.getSuccessors(currState)
+            for dir, cost, nextState in successors:
+                if nextState not in explored:
+                    frontier.push((actions + [dir], nextState))
 
     return []
 
@@ -163,32 +162,32 @@ def uniformCostSearch(problem):
     "*** YOUR CODE HERE ***"
     frontier = PriorityQueue()
     initialState = problem.getStartState()
-    frontier.push((None, None, initialState), 0)
-    actions = []
-    explored = dict()
-    while not frontier.isEmpty():
-        curr_priority = frontier.heap[0][0]
-        print(curr_priority)
-        prevState, direction, currState = frontier.pop()
+    frontier.push(([], initialState), 0)
 
-        explored[currState] = (prevState, direction)
+    explored = []
+    while not frontier.isEmpty():
+        # print(frontier.heap)
+        currPriority = frontier.heap[0][0]
+        actions, currState = frontier.pop()
+
 
         if problem.isGoalState(currState):
-            temp = currState
+            # temp = currState
             # print(explored)
             # print(temp)
-            while temp in explored.keys():
-                actions.append(explored[temp][1])
-                # print(explored[temp])
-                temp = explored[temp][0]
+            # while temp in explored.keys():
+            #     actions.append(explored[temp][1])
+            #     # print(explored[temp])
+            #     temp = explored[temp][0]
             # print(temp)
             # print(actions[:-1][::-1])
-            return actions[-2::-1]
-
-        successors = problem.getSuccessors(currState)
-        for dir, cost, nextState in successors:
-            if nextState not in explored.keys():
-                frontier.update((currState, dir, nextState), curr_priority + cost)
+            return actions
+        if currState not in explored:
+            explored.append(currState)
+            successors = problem.getSuccessors(currState)
+            for dir, cost, nextState in successors:
+                if nextState not in explored:
+                    frontier.update((actions + [dir], nextState), currPriority + cost)
 
     return []
 
@@ -203,6 +202,36 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
+    frontier = PriorityQueue()
+    initialState = problem.getStartState()
+    frontier.push(([], initialState), 0)
+
+    explored = []
+    while not frontier.isEmpty():
+        # print(frontier.heap)
+        currPriority = frontier.heap[0][0]
+        actions, currState = frontier.pop()
+
+        if problem.isGoalState(currState):
+            # temp = currState
+            # print(explored)
+            # print(temp)
+            # while temp in explored.keys():
+            #     actions.append(explored[temp][1])
+            #     # print(explored[temp])
+            #     temp = explored[temp][0]
+            # print(temp)
+            # print(actions[:-1][::-1])
+            return actions
+
+        if currState not in explored:
+            explored.append(currState)
+            successors = problem.getSuccessors(currState)
+            for dir, cost, nextState in successors:
+                if nextState not in explored:
+                    frontier.update((actions + [dir], nextState), currPriority + cost + heuristic(nextState, problem))
+
+    return []
 
 
 # Abbreviations
