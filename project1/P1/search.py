@@ -204,13 +204,13 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     "*** YOUR CODE HERE ***"
     frontier = PriorityQueue()
     initialState = problem.getStartState()
-    frontier.push(([], initialState), 0)
+    frontier.push(([], 0, initialState), 0)
 
     explored = []
     while not frontier.isEmpty():
         # print(frontier.heap)
-        currPriority = frontier.heap[0][0]
-        actions, currState = frontier.pop()
+        # currPriority = frontier.heap[0][0]
+        actions, totalCost, currState = frontier.pop()
 
         if problem.isGoalState(currState):
             # temp = currState
@@ -229,7 +229,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             successors = problem.getSuccessors(currState)
             for dir, cost, nextState in successors:
                 if nextState not in explored:
-                    frontier.update((actions + [dir], nextState), currPriority + cost + heuristic(nextState, problem))
+                    frontier.update((actions + [dir], totalCost+cost, nextState), totalCost+cost + heuristic(nextState, problem))
 
     return []
 

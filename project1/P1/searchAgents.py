@@ -299,6 +299,7 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.startingGameState = startingGameState
         self.cornerIndex = {(1, 1): 0, (1, top): 1, (right, 1): 2, (right, top): 3}
 
     def getStartState(self):
@@ -392,7 +393,7 @@ def cornersHeuristic(state, problem):
     for index, corner in corners.items():
         # print(corner)
         if not visitedCorners[index]:
-            dist = max(abs(pos[0]-corner[0])+abs(pos[1]-corner[1]), dist)
+            dist = max(mazeDistance(corner, pos, problem.startingGameState), dist)
     return dist
 
 class AStarCornersAgent(SearchAgent):
@@ -493,6 +494,15 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
+    if len(foodGrid.asList())==0:
+        return 0
+    # print(foodGrid.asList())
+    distmax = 0
+    for food in foodGrid.asList():
+        distmax = max(mazeDistance(food, position, problem.startingGameState), distmax)
+        # distmax = max(util.manhattanDistance(food, position), distmax)
+
+    return distmax
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -524,6 +534,9 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+        path = search.bfs(problem)
+        return path
+
 
 
 class AnyFoodSearchProblem(PositionSearchProblem):
@@ -560,6 +573,8 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x, y = state
 
         "*** YOUR CODE HERE ***"
+        foodlist = self.food.asList()
+        return state in foodlist
 
 
 def mazeDistance(point1, point2, gameState):
