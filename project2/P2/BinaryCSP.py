@@ -328,15 +328,15 @@ def revise(assignment, csp, var1, var2, constraint):
                 remove=False
                 break
         if remove:
-            count+=1
+            if (var2,v2) not in inferences:
+                count+=1
             inferences.add((var2,v2))
     if count == len(assignment.varDomains[var2]):
-        for a,b in inferences:
-            assignment.varDomains[a].add(b)
+        # for a,b in inferences:
+        #     assignment.varDomains[a].add(b)
         return None
-    else:
-        for a,b in inferences:
-            assignment.varDomains[a].discard(b)
+    for a,b in inferences:
+        assignment.varDomains[a].discard(b)
     return inferences
     raise_undefined_error()
 
@@ -374,6 +374,7 @@ def maintainArcConsistency(assignment, csp, var, value):
     while len(q)!=0:
         var1,var2,constraint = q.popleft()
         inference = revise(assignment,csp,var1,var2,constraint)
+
         if inference:
             inferences |= inference
             for c in csp.binaryConstraints:
@@ -382,6 +383,8 @@ def maintainArcConsistency(assignment, csp, var, value):
                     if not assignment.isAssigned(otherVar):
                         q.append((var2,otherVar,c))
         elif inference is None:
+            for a, b in inferences:
+                assignment.varDomains[a].add(b)
             return None
     return inferences
     raise_undefined_error()
@@ -409,7 +412,8 @@ def AC3(assignment, csp):
     q = deque()
     for var in csp.varDomains:
         for constraint in csp.binaryConstraints:
-            if constraint.affects(var) and not assignment.isAssigned(constraint.otherVariable(var)):
+            # if constraint.affects(var) and not assignment.isAssigned(constraint.otherVariable(var)):
+            if constraint.affects(var):
                 q.append((var, constraint.otherVariable(var), constraint))
 
     while len(q)!=0:
@@ -424,6 +428,8 @@ def AC3(assignment, csp):
                     if not assignment.isAssigned(otherVar):
                         q.append((var2, otherVar, c))
         elif inference is None:
+            for a, b in inferences:
+                assignment.varDomains[a].add(b)
             return None
     return assignment
     raise_undefined_error()
