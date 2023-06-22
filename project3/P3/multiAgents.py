@@ -72,7 +72,7 @@ class ReflexAgent(Agent):
         ghostPositions=[ghostState.configuration.pos for ghostState in newGhostStates]
         # print(ghostPositions)
         # print(newPos)
-        dist_food = 1/min([manhattanDistance(foodPos,newPos) for foodPos in newFood.asList()]) if newFood.asList() else 0
+        dist_food = 2/min([manhattanDistance(foodPos,newPos) for foodPos in newFood.asList()]) if newFood.asList() else 0
         ghosts = [manhattanDistance(newPos,ghostPos) for ghostPos in ghostPositions]
         dist_ghost = 1/min(ghosts) if min(ghosts)>0 else 0
         # print(newFood.asList())
@@ -123,7 +123,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         if not actions:
             return self.evaluationFunction(gameState)
         next_agent = agent+1 if agent!=num-1 else 0
-        next_depth = depth if agent!=0 else depth-1
+        next_depth = depth if next_agent!=0 else depth-1
 
         maxi = -sys.maxsize
         mini = sys.maxsize
@@ -182,44 +182,69 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         if depth==0 or gameState.isWin() or gameState.isLose():
             return self.evaluationFunction(gameState)
 
+        actions=gameState.getLegalActions(agent)
+        # successors = [gameState.generateSuccessor(agent, action) for action in actions]
+        next_agent=agent+1 if agent!=gameState.getNumAgents()-1 else 0
+        depth=depth-1 if next_agent==0 else depth
+        v=None
         if agent==0:
-            return self.max_value(gameState,alpha,beta,agent,depth-1)
-        else:
-            return self.min_value(gameState,alpha,beta,agent,depth)
-
-    def max_value(self,state,alpha,beta,agent,depth):
-        # if depth==0 or state.isWin() or state.isLose():
-        #     return self.evaluationFunction(state)
-        if agent!=0:
-            print("Wrong call")
-        v=-sys.maxsize
-        actions=state.getLegalActions(agent)
-        next_agent = agent+1
-        successors = [state.generateSuccessor(agent,action) for action in actions]
-        for successor in successors:
-            v=max(v,self.value(successor,alpha,beta,next_agent,depth))
-            if v>=beta:
-                return v
-            alpha=max(alpha,v)
-        return v
-
-    def min_value(self,state,alpha,beta,agent,depth):
-        # if depth==0 or state.isWin() or state.isLose():
-        #     return self.evaluationFunction(state)
-        if agent==0:
-            print("Wrong call")
-        v=sys.maxsize
-        actions=state.getLegalActions(agent)
-        last_agent = agent-1 if agent !=0 else state.getNumAgents()-1
-        next_agent = agent+1 if agent !=state.getNumAgents()-1 else 0
-        successors = [state.generateSuccessor(agent,action) for action in actions]
-        for successor in successors:
-            v=min(v,self.value(successor,alpha,beta,next_agent,depth))
-            if last_agent==0:
-                if v<=alpha:
+            v = -sys.maxsize
+            # for successor in successors:
+            #     print("1",successor)
+            for action in actions:
+                v = max(v, self.value(gameState.generateSuccessor(agent,action), alpha, beta, next_agent, depth))
+                # print("2",gameState.generateSuccessor(agent,action))
+                if v > beta:
                     return v
-            beta = min(beta, v)
+                alpha = max(alpha, v)
+            # return self.max_value(gameState,alpha,beta,agent,depth)
+        else:
+            v = sys.maxsize
+            # for successor in successors:
+            #     print("1",successor)
+            for action in actions:
+                v = min(v, self.value(gameState.generateSuccessor(agent,action), alpha, beta, next_agent, depth))
+                # if last_agent==0:
+                # print("2", gameState.generateSuccessor(agent, action))
+                if v < alpha:
+                    return v
+                beta = min(beta, v)
+            # return self.min_value(gameState, alpha, beta, agent, depth)
         return v
+
+    # def max_value(self,state,alpha,beta,agent,depth):
+    #     # if depth==0 or state.isWin() or state.isLose():
+    #     #     return self.evaluationFunction(state)
+    #     if agent!=0:
+    #         print("Wrong call")
+    #     v=-sys.maxsize
+    #     actions=state.getLegalActions(agent)
+    #     next_agent = agent+1
+    #     # successors = [state.generateSuccessor(agent,action) for action in actions]
+    #     for action in actions:
+    #         v=max(v,self.value(state.generateSuccessor(agent,action),alpha,beta,next_agent,depth))
+    #         if v>=beta:
+    #             return v
+    #         alpha=max(alpha,v)
+    #     return v
+    #
+    # def min_value(self,state,alpha,beta,agent,depth):
+    #     # if depth==0 or state.isWin() or state.isLose():
+    #     #     return self.evaluationFunction(state)
+    #     if agent==0:
+    #         print("Wrong call")
+    #     v=sys.maxsize
+    #     actions=state.getLegalActions(agent)
+    #     # last_agent = agent-1 if agent !=0 else state.getNumAgents()-1
+    #     next_agent = agent+1 if agent !=state.getNumAgents()-1 else 0
+    #     # successors = [state.generateSuccessor(agent,action) for action in actions]
+    #     for action in actions:
+    #         v=min(v,self.value(state.generateSuccessor(agent,action),alpha,beta,next_agent,depth))
+    #         # if last_agent==0:
+    #         if v<=alpha:
+    #             return v
+    #         beta = min(beta, v)
+    #     return v
 
 
     def getAction(self, gameState):
@@ -228,11 +253,19 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         actions = gameState.getLegalActions(0)
-        all_values = [self.value(gameState.generateSuccessor(0, action), -sys.maxsize,sys.maxsize, 1,self.depth) for action in actions]
+        # all_values = [self.value(gameState.generateSuccessor(0, action), -sys.maxsize,sys.maxsize, 1,self.depth) for action in actions]
         # print(max(all_values))
-        ret = actions[all_values.index(max(all_values))]
+        value=-sys.maxsize
+        alpha=-sys.maxsize
+        best=actions[0]
+        for action in actions:
+            v=self.value(gameState.generateSuccessor(0,action),alpha,sys.maxsize,1,self.depth)
+            if v>value:
+                value=v
+                best=action
+            alpha=max(alpha,v)
         # print(ret)
-        return ret
+        return best
         util.raiseNotDefined()
 
 
@@ -248,7 +281,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         if not actions:
             return self.evaluationFunction(gameState)
         next_agent = agent+1 if agent!=num-1 else 0
-        next_depth = depth if agent!=0 else depth-1
+        next_depth = depth-1 if agent==num-1 else depth
 
         maxi = -sys.maxsize
         expecti = 0.
