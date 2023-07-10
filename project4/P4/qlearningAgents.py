@@ -53,7 +53,7 @@ class QLearningAgent(ReinforcementAgent):
         actions=self.getLegalActions(state)
         if not len(actions):
             return 0.
-        return max([self.Q[(state, action)] for action in actions])
+        return max([self.getQValue(state,action) for action in actions])
         util.raiseNotDefined()
 
     def computeActionFromQValues(self, state):
@@ -175,7 +175,7 @@ class ApproximateQAgent(PacmanQAgent):
         num = 0
         features = self.featExtractor.getFeatures(state, action)
         for sa in features.keys():
-            num+=features[sa]*self.weights[sa]
+            num+=self.weights[sa]*features[sa]
         return num
         util.raiseNotDefined()
 

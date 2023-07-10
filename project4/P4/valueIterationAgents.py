@@ -194,5 +194,5 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
                 high = max([self.getQValue(p, action) for action in self.mdp.getPossibleActions(p)])
                 diff = abs(curr - high)
                 if diff>self.theta:
-                    pq.push(p, -diff)
+                    pq.update(p, -diff)
 
